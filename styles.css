@@ -1,0 +1,336 @@
+/* 全局样式 */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Arial', sans-serif;
+    background: linear-gradient(135deg, #2c3e50, #3498db);
+    color: #ecf0f1;
+    overflow: hidden;
+}
+
+#game-container {
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+/* 顶部栏样式 */
+#top-bar {
+    background: rgba(44, 62, 80, 0.9);
+    padding: 10px 20px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 2px solid #34495e;
+    backdrop-filter: blur(10px);
+}
+
+.player-info {
+    display: flex;
+    gap: 20px;
+    font-weight: bold;
+}
+
+.resources {
+    display: flex;
+    gap: 15px;
+}
+
+.resource {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    background: rgba(52, 73, 94, 0.7);
+    padding: 5px 10px;
+    border-radius: 15px;
+    font-weight: bold;
+}
+
+.resource img {
+    width: 20px;
+    height: 20px;
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, #e74c3c, #c0392b);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 5px;
+    cursor: pointer;
+    font-weight: bold;
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    background: linear-gradient(135deg, #c0392b, #a93226);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* 主游戏区域 */
+#game-area {
+    flex: 1;
+    display: flex;
+    overflow: hidden;
+}
+
+/* 侧边面板样式 */
+#left-panel, #right-panel {
+    width: 250px;
+    background: rgba(44, 62, 80, 0.9);
+    padding: 15px;
+    overflow-y: auto;
+    backdrop-filter: blur(10px);
+}
+
+#left-panel {
+    border-right: 2px solid #34495e;
+}
+
+#right-panel {
+    border-left: 2px solid #34495e;
+}
+
+.panel-section {
+    margin-bottom: 20px;
+    background: rgba(52, 73, 94, 0.5);
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #34495e;
+}
+
+.panel-section h3 {
+    color: #3498db;
+    margin-bottom: 10px;
+    font-size: 16px;
+    border-bottom: 1px solid #34495e;
+    padding-bottom: 5px;
+}
+
+/* 科技树样式 */
+#tech-tree {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.tech-item {
+    background: rgba(41, 128, 185, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: 1px solid #2980b9;
+}
+
+.tech-item:hover {
+    background: rgba(41, 128, 185, 0.4);
+    transform: translateX(5px);
+}
+
+.tech-item.researched {
+    background: rgba(39, 174, 96, 0.3);
+    border-color: #27ae60;
+}
+
+.tech-item.researching {
+    background: rgba(241, 196, 15, 0.3);
+    border-color: #f1c40f;
+}
+
+.tech-cost {
+    font-size: 12px;
+    color: #bdc3c7;
+    margin-top: 5px;
+}
+
+/* 建造选项样式 */
+#build-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.build-btn {
+    background: rgba(142, 68, 173, 0.3);
+    color: #ecf0f1;
+    border: 1px solid #8e44ad;
+    padding: 8px 12px;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.build-btn:hover {
+    background: rgba(142, 68, 173, 0.5);
+    transform: translateY(-2px);
+}
+
+.build-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+/* 游戏画布 */
+#game-canvas {
+    flex: 1;
+    background: #34495e;
+    cursor: crosshair;
+    border: 2px solid #2c3e50;
+}
+
+/* 底部状态栏 */
+#status-bar {
+    background: rgba(44, 62, 80, 0.9);
+    padding: 10px 20px;
+    border-top: 2px solid #34495e;
+    backdrop-filter: blur(10px);
+}
+
+#game-messages {
+    max-height: 60px;
+    overflow-y: auto;
+    font-size: 14px;
+    line-height: 1.4;
+}
+
+#game-messages p {
+    margin-bottom: 5px;
+    padding: 2px 0;
+}
+
+/* 城市列表样式 */
+.city-item {
+    background: rgba(39, 174, 96, 0.2);
+    padding: 10px;
+    margin-bottom: 8px;
+    border-radius: 5px;
+    border: 1px solid #27ae60;
+    cursor: pointer;
+    transition: all 0.3s ease;
+}
+
+.city-item:hover {
+    background: rgba(39, 174, 96, 0.4);
+    transform: translateX(5px);
+}
+
+.city-name {
+    font-weight: bold;
+    color: #2ecc71;
+}
+
+.city-stats {
+    font-size: 12px;
+    color: #bdc3c7;
+    margin-top: 5px;
+}
+
+/* 单位信息样式 */
+.unit-info {
+    background: rgba(230, 126, 34, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #e67e22;
+}
+
+.unit-name {
+    font-weight: bold;
+    color: #f39c12;
+    margin-bottom: 5px;
+}
+
+.unit-stats {
+    font-size: 12px;
+    color: #bdc3c7;
+}
+
+/* 地块信息样式 */
+.tile-info {
+    background: rgba(155, 89, 182, 0.2);
+    padding: 10px;
+    border-radius: 5px;
+    border: 1px solid #9b59b6;
+}
+
+.tile-type {
+    font-weight: bold;
+    color: #e74c3c;
+    margin-bottom: 5px;
+}
+
+.tile-yields {
+    font-size: 12px;
+    color: #bdc3c7;
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+    #left-panel, #right-panel {
+        width: 200px;
+    }
+}
+
+@media (max-width: 900px) {
+    #left-panel, #right-panel {
+        width: 180px;
+    }
+    
+    .resources {
+        gap: 10px;
+    }
+    
+    .resource {
+        padding: 3px 8px;
+        font-size: 12px;
+    }
+}
+
+/* 滚动条样式 */
+::-webkit-scrollbar {
+    width: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: rgba(52, 73, 94, 0.3);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: rgba(52, 152, 219, 0.6);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: rgba(52, 152, 219, 0.8);
+}
+
+/* 动画效果 */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.panel-section {
+    animation: fadeIn 0.5s ease-out;
+}
+
+/* 工具提示样式 */
+.tooltip {
+    position: absolute;
+    background: rgba(44, 62, 80, 0.95);
+    color: #ecf0f1;
+    padding: 8px 12px;
+    border-radius: 5px;
+    font-size: 12px;
+    pointer-events: none;
+    z-index: 1000;
+    border: 1px solid #34495e;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}

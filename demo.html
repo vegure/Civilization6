@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文明时代 - 游戏演示</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+            background: linear-gradient(135deg, #2c3e50, #3498db);
+            color: #ecf0f1;
+            line-height: 1.6;
+        }
+        
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+        }
+        
+        .header h1 {
+            font-size: 3em;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.5);
+        }
+        
+        .header p {
+            font-size: 1.2em;
+            opacity: 0.9;
+        }
+        
+        .game-link {
+            display: inline-block;
+            background: linear-gradient(135deg, #e74c3c, #c0392b);
+            color: white;
+            padding: 15px 30px;
+            text-decoration: none;
+            border-radius: 10px;
+            font-size: 1.2em;
+            font-weight: bold;
+            margin: 20px 10px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+        }
+        
+        .game-link:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0,0,0,0.4);
+        }
+        
+        .features {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin: 40px 0;
+        }
+        
+        .feature {
+            background: rgba(52, 73, 94, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            border: 1px solid #34495e;
+        }
+        
+        .feature h3 {
+            color: #3498db;
+            margin-bottom: 15px;
+            font-size: 1.3em;
+        }
+        
+        .feature ul {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .feature li {
+            padding: 5px 0;
+            padding-left: 20px;
+            position: relative;
+        }
+        
+        .feature li:before {
+            content: "✓";
+            position: absolute;
+            left: 0;
+            color: #2ecc71;
+            font-weight: bold;
+        }
+        
+        .controls {
+            background: rgba(52, 73, 94, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .controls h3 {
+            color: #f39c12;
+            margin-bottom: 15px;
+        }
+        
+        .control-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 15px;
+        }
+        
+        .control-section {
+            background: rgba(44, 62, 80, 0.5);
+            padding: 15px;
+            border-radius: 5px;
+        }
+        
+        .control-section h4 {
+            color: #e74c3c;
+            margin-bottom: 10px;
+        }
+        
+        .screenshot {
+            text-align: center;
+            margin: 40px 0;
+        }
+        
+        .screenshot img {
+            max-width: 100%;
+            border-radius: 10px;
+            box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+        }
+        
+        .tech-tree {
+            background: rgba(52, 73, 94, 0.8);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+        
+        .tech-tree h3 {
+            color: #9b59b6;
+            margin-bottom: 15px;
+        }
+        
+        .tech-items {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 10px;
+        }
+        
+        .tech-item {
+            background: rgba(155, 89, 182, 0.2);
+            padding: 10px;
+            border-radius: 5px;
+            border: 1px solid #9b59b6;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        
+        .footer {
+            text-align: center;
+            margin-top: 40px;
+            padding-top: 20px;
+            border-top: 1px solid #34495e;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>🏛️ 文明时代 🏛️</h1>
+        <p>一个基于网页的类似文明6的策略游戏</p>
+        
+        <a href="/" class="game-link">🎮 开始游戏</a>
+        <a href="/#debug" class="game-link">🔧 调试模式</a>
+    </div>
+
+    <div class="features">
+        <div class="feature">
+            <h3>🗺️ 地图系统</h3>
+            <ul>
+                <li>六边形网格地图</li>
+                <li>多样化地形类型</li>
+                <li>程序化生成</li>
+                <li>河流系统</li>
+                <li>战争迷雾</li>
+                <li>资源分布</li>
+            </ul>
+        </div>
+        
+        <div class="feature">
+            <h3>🏛️ 城市建设</h3>
+            <ul>
+                <li>城市建立与管理</li>
+                <li>人口增长系统</li>
+                <li>建筑建造</li>
+                <li>生产队列</li>
+                <li>地块工作分配</li>
+                <li>资源产出</li>
+            </ul>
+        </div>
+        
+        <div class="feature">
+            <h3>⚔️ 单位系统</h3>
+            <ul>
+                <li>多种单位类型</li>
+                <li>单位移动与战斗</li>
+                <li>自动探索</li>
+                <li>经验值系统</li>
+                <li>特殊能力</li>
+                <li>升级机制</li>
+            </ul>
+        </div>
+        
+        <div class="feature">
+            <h3>🔬 科技树</h3>
+            <ul>
+                <li>完整科技研究</li>
+                <li>科技依赖关系</li>
+                <li>解锁新内容</li>
+                <li>时代进程</li>
+                <li>研究进度</li>
+                <li>科技效果</li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="controls">
+        <h3>🎮 游戏控制</h3>
+        <div class="control-grid">
+            <div class="control-section">
+                <h4>鼠标操作</h4>
+                <p><strong>左键点击</strong> - 选择单位/城市</p>
+                <p><strong>左键点击</strong> - 移动单位</p>
+                <p><strong>鼠标滚轮</strong> - 缩放地图</p>
+                <p><strong>鼠标移动</strong> - 查看地块信息</p>
+            </div>
+            
+            <div class="control-section">
+                <h4>键盘快捷键</h4>
+                <p><strong>WASD / 方向键</strong> - 移动相机</p>
+                <p><strong>空格键</strong> - 下一回合</p>
+                <p><strong>ESC</strong> - 取消选择</p>
+                <p><strong>H</strong> - 显示帮助</p>
+            </div>
+            
+            <div class="control-section">
+                <h4>调试命令</h4>
+                <p><strong>debugCommands.addGold(1000)</strong></p>
+                <p><strong>debugCommands.addScience(500)</strong></p>
+                <p><strong>debugCommands.revealMap()</strong></p>
+                <p><strong>debugCommands.help()</strong></p>
+            </div>
+        </div>
+    </div>
+
+    <div class="tech-tree">
+        <h3>🔬 科技树预览</h3>
+        <div class="tech-items">
+            <div class="tech-item">农业<br><small>解锁农场</small></div>
+            <div class="tech-item">陶器<br><small>解锁粮仓</small></div>
+            <div class="tech-item">畜牧业<br><small>解锁牧场</small></div>
+            <div class="tech-item">采矿<br><small>解锁矿井</small></div>
+            <div class="tech-item">射箭术<br><small>解锁弓箭手</small></div>
+            <div class="tech-item">青铜器<br><small>解锁剑士</small></div>
+            <div class="tech-item">文字<br><small>解锁图书馆</small></div>
+            <div class="tech-item">铁器<br><small>解锁铁矿</small></div>
+            <div class="tech-item">货币<br><small>解锁市场</small></div>
+            <div class="tech-item">建筑学<br><small>解锁城墙</small></div>
+            <div class="tech-item">数学<br><small>解锁投石机</small></div>
+            <div class="tech-item">哲学<br><small>解锁神庙</small></div>
+        </div>
+    </div>
+
+    <div class="screenshot">
+        <h3>🖼️ 游戏截图</h3>
+        <p>六边形地图，单位移动，城市建设</p>
+        <div style="background: #34495e; padding: 20px; border-radius: 10px; margin: 20px 0;">
+            <p style="text-align: center; font-size: 1.2em;">
+                🗺️ 六边形地图 | 🏘️ 开拓者 | ⚔️ 战士 | 🏛️ 城市 | 🌾 资源
+            </p>
+        </div>
+    </div>
+
+    <div class="footer">
+        <p>© 2025 文明时代 - 基于HTML5 Canvas和JavaScript构建</p>
+        <p>灵感来源于Sid Meier's Civilization VI</p>
+        <p>
+            <a href="https://github.com" style="color: #3498db;">GitHub</a> | 
+            <a href="/README.md" style="color: #3498db;">文档</a> | 
+            <a href="/LICENSE" style="color: #3498db;">许可证</a>
+        </p>
+    </div>
+
+    <script>
+        // 简单的页面交互
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('文明时代演示页面加载完成');
+            
+            // 添加一些动画效果
+            const features = document.querySelectorAll('.feature');
+            features.forEach((feature, index) => {
+                feature.style.animationDelay = `${index * 0.1}s`;
+                feature.style.animation = 'fadeInUp 0.6s ease-out forwards';
+            });
+        });
+        
+        // CSS动画
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes fadeInUp {
+                from {
+                    opacity: 0;
+                    transform: translateY(30px);
+                }
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            
+            .feature {
+                opacity: 0;
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+</body>
+</html>

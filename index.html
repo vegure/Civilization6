@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>文明时代 - Civilization Era</title>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div id="game-container">
+        <!-- 游戏UI顶部栏 -->
+        <div id="top-bar">
+            <div class="player-info">
+                <span id="player-name">玩家文明</span>
+                <span id="turn-counter">回合: 1</span>
+            </div>
+            <div class="resources">
+                <span class="resource">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjRkZENzAwIi8+Cjwvc3ZnPgo=" alt="科技">
+                    <span id="science-points">0</span>
+                </span>
+                <span class="resource">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTQuMDkgOC4yNkwyMSA5TDE0LjA5IDE1Ljc0TDEyIDIyTDkuOTEgMTUuNzRMMyA5TDkuOTEgOC4yNkwxMiAyWiIgZmlsbD0iIzAwN0ZGRiIvPgo8L3N2Zz4K" alt="文化">
+                    <span id="culture-points">0</span>
+                </span>
+                <span class="resource">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPGNpcmNsZSBjeD0iMTIiIGN5PSIxMiIgcj0iMTAiIGZpbGw9IiNGRkQ3MDAiLz4KPHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTEyIDJMMTMuMDkgOC4yNkwyMCA5TDEzLjA5IDE1Ljc0TDEyIDIyTDEwLjkxIDE1Ljc0TDQgOUwxMC45MSA4LjI2TDEyIDJaIiBmaWxsPSIjRkZENzAwIi8+Cjwvc3ZnPgo=" alt="金币">
+                    <span id="gold">100</span>
+                </span>
+            </div>
+            <button id="next-turn-btn" class="btn-primary">下一回合</button>
+        </div>
+
+        <!-- 主游戏区域 -->
+        <div id="game-area">
+            <!-- 左侧面板 -->
+            <div id="left-panel">
+                <div class="panel-section">
+                    <h3>科技树</h3>
+                    <div id="tech-tree">
+                        <div class="tech-item" data-tech="agriculture">
+                            <span>农业</span>
+                            <div class="tech-cost">20 科技</div>
+                        </div>
+                        <div class="tech-item" data-tech="pottery">
+                            <span>陶器</span>
+                            <div class="tech-cost">25 科技</div>
+                        </div>
+                        <div class="tech-item" data-tech="writing">
+                            <span>文字</span>
+                            <div class="tech-cost">30 科技</div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>城市</h3>
+                    <div id="cities-list">
+                        <!-- 城市列表将在这里动态生成 -->
+                    </div>
+                </div>
+            </div>
+
+            <!-- 地图画布 -->
+            <canvas id="game-canvas" width="800" height="600"></canvas>
+
+            <!-- 右侧面板 -->
+            <div id="right-panel">
+                <div class="panel-section">
+                    <h3>选中单位</h3>
+                    <div id="selected-unit">
+                        <p>点击地图上的单位来选择</p>
+                    </div>
+                </div>
+                
+                <div class="panel-section">
+                    <h3>地块信息</h3>
+                    <div id="tile-info">
+                        <p>点击地图查看地块详情</p>
+                    </div>
+                </div>
+
+                <div class="panel-section">
+                    <h3>建造</h3>
+                    <div id="build-options">
+                        <button class="build-btn" data-build="settler">开拓者</button>
+                        <button class="build-btn" data-build="warrior">战士</button>
+                        <button class="build-btn" data-build="worker">工人</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 底部状态栏 -->
+        <div id="status-bar">
+            <div id="game-messages">
+                <p>欢迎来到文明时代！开始你的文明征程吧。</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- 游戏脚本 -->
+    <script src="js/hexagon.js"></script>
+    <script src="js/terrain.js"></script>
+    <script src="js/units.js"></script>
+    <script src="js/cities.js"></script>
+    <script src="js/technology.js"></script>
+    <script src="js/game.js"></script>
+    <script src="js/main.js"></script>
+</body>
+</html>

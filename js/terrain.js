@@ -3,29 +3,62 @@ class TerrainGenerator {
     constructor(seed = Math.random()) {
         this.seed = seed;
         this.noise = new SimplexNoise(seed);
+        this.continentNoise = new SimplexNoise(seed * 2);
+        this.detailNoise = new SimplexNoise(seed * 3);
+        
+        // 地形生成参数
+        this.seaLevel = -0.2;
+        this.mountainLevel = 0.5;
+        this.hillLevel = 0.2;
+        this.temperatureScale = 0.05;
+        this.moistureScale = 0.08;
+        this.elevationScale = 0.06;
+        this.continentScale = 0.02;
     }
 
     // 生成地形类型
     generateTerrain(q, r, s) {
-        // 使用噪声函数生成地形
-        const scale = 0.1;
-        const elevation = this.noise.noise2D(q * scale, r * scale);
-        const moisture = this.noise.noise2D((q + 1000) * scale, (r + 1000) * scale);
-        const temperature = this.noise.noise2D((q + 2000) * scale, (r + 2000) * scale);
+        // 计算距离中心的距离（用于大陆形状）
+        const distanceFromCenter = Math.sqrt(q * q + r * r) / 20;
+        
+        // 使用多层噪声生成更真实的地形
+        const continentShape = this.continentNoise.noise2D(q * this.continentScale, r * this.continentScale);
+        const elevation = this.noise.noise2D(q * this.elevationScale, r * this.elevationScale);
+        const moisture = this.noise.noise2D((q + 1000) * this.moistureScale, (r + 1000) * this.moistureScale);
+        const temperature = this.noise.noise2D((q + 2000) * this.temperatureScale, (r + 2000) * this.temperatureScale);
+        const detail = this.detailNoise.noise2D(q * 0.15, r * 0.15);
+        
+        // 组合噪声值
+        let finalElevation = elevation * 0.6 + continentShape * 0.4 + detail * 0.1;
+        
+        // 应用距离衰减（让边缘更可能是海洋）
+        finalElevation -= Math.max(0, distanceFromCenter - 0.7) * 2;
         
         // 根据海拔、湿度和温度决定地形
-        if (elevation < -0.3) {
+        if (finalElevation < this.seaLevel) {
             return 'water';
-        } else if (elevation > 0.6) {
+        } else if (finalElevation > this.mountainLevel) {
             return 'mountains';
-        } else if (elevation > 0.3 && moisture < -0.2) {
-            return 'hills';
-        } else if (moisture > 0.3 && temperature > 0.1) {
-            return 'forest';
-        } else if (moisture < -0.3) {
-            return 'plains';
+        } else if (finalElevation > this.hillLevel) {
+            // 丘陵区域
+            if (moisture > 0.2 && temperature > 0.0) {
+                return 'forest';
+            } else {
+                return 'hills';
+            }
         } else {
-            return 'grassland';
+            // 平地区域
+            if (temperature < -0.4) {
+                return moisture > 0.0 ? 'tundra' : 'snow';
+            } else if (temperature > 0.4 && moisture < -0.3) {
+                return 'desert';
+            } else if (moisture > 0.3 && temperature > -0.1) {
+                return 'forest';
+            } else if (moisture < -0.2) {
+                return 'plains';
+            } else {
+                return 'grassland';
+            }
         }
     }
 
@@ -35,18 +68,21 @@ class TerrainGenerator {
         
         // 不同地形有不同的资源概率
         const resourceChances = {
-            grassland: { wheat: 0.3, horses: 0.1 },
-            plains: { wheat: 0.2, horses: 0.15 },
-            forest: { deer: 0.2, furs: 0.1 },
-            hills: { iron: 0.25, stone: 0.2, gold: 0.05 },
-            mountains: { gold: 0.15, gems: 0.05, stone: 0.3 },
-            water: { fish: 0.4, pearls: 0.05 }
+            grassland: { wheat: 0.25, horses: 0.08, cattle: 0.12 },
+            plains: { wheat: 0.18, horses: 0.12, sheep: 0.15 },
+            forest: { deer: 0.2, furs: 0.1, lumber: 0.15 },
+            hills: { iron: 0.2, stone: 0.25, gold: 0.08, copper: 0.12 },
+            mountains: { gold: 0.15, gems: 0.08, stone: 0.25, silver: 0.1 },
+            water: { fish: 0.35, pearls: 0.05, whales: 0.08 },
+            desert: { oil: 0.1, gems: 0.05, salt: 0.15 },
+            tundra: { furs: 0.2, deer: 0.15, iron: 0.1 },
+            snow: { oil: 0.08, furs: 0.12 }
         };
 
         const chances = resourceChances[terrain] || {};
         
         // 使用噪声值决定是否生成资源
-        if (resourceNoise > 0.4) {
+        if (resourceNoise > 0.35) {
             const resourceTypes = Object.keys(chances);
             for (const resourceType of resourceTypes) {
                 if (Math.random() < chances[resourceType]) {
@@ -61,16 +97,31 @@ class TerrainGenerator {
     // 创建资源对象
     createResource(type) {
         const resources = {
-            wheat: { type: 'wheat', color: '#f1c40f', yields: { food: 1 } },
-            horses: { type: 'horses', color: '#8b4513', yields: { production: 1 } },
-            deer: { type: 'deer', color: '#d2691e', yields: { food: 1 } },
-            furs: { type: 'furs', color: '#654321', yields: { gold: 2 } },
-            iron: { type: 'iron', color: '#95a5a6', yields: { production: 2 } },
-            stone: { type: 'stone', color: '#7f8c8d', yields: { production: 1 } },
-            gold: { type: 'gold', color: '#f39c12', yields: { gold: 3 } },
-            gems: { type: 'gems', color: '#9b59b6', yields: { gold: 2 } },
-            fish: { type: 'fish', color: '#3498db', yields: { food: 2 } },
-            pearls: { type: 'pearls', color: '#ecf0f1', yields: { gold: 2 } }
+            // 食物资源
+            wheat: { type: 'wheat', color: '#f1c40f', yields: { food: 1 }, emoji: '🌾' },
+            cattle: { type: 'cattle', color: '#8b4513', yields: { food: 1 }, emoji: '🐄' },
+            sheep: { type: 'sheep', color: '#f8f9fa', yields: { food: 1 }, emoji: '🐑' },
+            deer: { type: 'deer', color: '#d2691e', yields: { food: 1 }, emoji: '🦌' },
+            fish: { type: 'fish', color: '#3498db', yields: { food: 2 }, emoji: '🐟' },
+            whales: { type: 'whales', color: '#2980b9', yields: { food: 1, gold: 1 }, emoji: '🐋' },
+            
+            // 生产资源
+            horses: { type: 'horses', color: '#8b4513', yields: { production: 1 }, emoji: '🐎' },
+            iron: { type: 'iron', color: '#95a5a6', yields: { production: 2 }, emoji: '⚒️' },
+            stone: { type: 'stone', color: '#7f8c8d', yields: { production: 1 }, emoji: '🗿' },
+            copper: { type: 'copper', color: '#cd7f32', yields: { production: 1 }, emoji: '🔶' },
+            lumber: { type: 'lumber', color: '#8b4513', yields: { production: 1 }, emoji: '🪵' },
+            
+            // 奢侈品资源
+            gold: { type: 'gold', color: '#f39c12', yields: { gold: 3 }, emoji: '💰' },
+            gems: { type: 'gems', color: '#9b59b6', yields: { gold: 2 }, emoji: '💎' },
+            pearls: { type: 'pearls', color: '#ecf0f1', yields: { gold: 2 }, emoji: '🦪' },
+            furs: { type: 'furs', color: '#654321', yields: { gold: 2 }, emoji: '🦫' },
+            silver: { type: 'silver', color: '#c0c0c0', yields: { gold: 2 }, emoji: '🥈' },
+            salt: { type: 'salt', color: '#ffffff', yields: { food: 1, gold: 1 }, emoji: '🧂' },
+            
+            // 战略资源
+            oil: { type: 'oil', color: '#2c3e50', yields: { production: 1, gold: 1 }, emoji: '🛢️' }
         };
         
         return resources[type] || null;

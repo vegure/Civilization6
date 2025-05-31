@@ -7,22 +7,33 @@ class HexagonMap {
         this.hexWidth = hexSize * 2;
         this.hexHeight = Math.sqrt(3) * hexSize;
         this.tiles = [];
+        this.textureManager = null;
         this.generateMap();
+    }
+
+    // 设置纹理管理器
+    setTextureManager(textureManager) {
+        this.textureManager = textureManager;
     }
 
     // 生成地图
     generateMap() {
         const terrainGen = new TerrainGenerator();
         
-        for (let q = -this.width; q <= this.width; q++) {
-            const r1 = Math.max(-this.height, -q - this.height);
-            const r2 = Math.min(this.height, -q + this.height);
-            for (let r = r1; r <= r2; r++) {
+        // 使用简单的矩形网格生成六边形地图
+        for (let col = 0; col < this.width; col++) {
+            for (let row = 0; row < this.height; row++) {
+                // 转换为立方坐标系
+                const q = col - Math.floor(row / 2);
+                const r = row;
                 const s = -q - r;
+                
                 const tile = new HexTile(q, r, s, terrainGen);
                 this.tiles.push(tile);
             }
         }
+        
+        console.log(`地图生成完成：${this.tiles.length} 个地块 (${this.width}x${this.height})`);
         
         // 生成河流系统
         this.riverSystem = new RiverSystem(this);
@@ -114,58 +125,112 @@ class HexagonMap {
         ctx.save();
         ctx.translate(offsetX, offsetY);
 
+        let renderedCount = 0;
+        const isDebugMode = window.location.hash === '#debug' || window.DEBUG_MODE;
+        
         this.tiles.forEach(tile => {
-            // 只渲染已探索的地块
-            if (!tile.explored && !window.DEBUG_MODE) return;
+            // 在调试模式下显示所有地块，否则只显示已探索的地块
+            if (!isDebugMode && !tile.explored) return;
+            
+            renderedCount++;
             
             const pixel = this.hexToPixel(tile.q, tile.r);
-            const color = tile.getTerrainColor();
             
-            this.drawHexagon(ctx, pixel.x, pixel.y, this.hexSize, color);
+            // 使用纹理渲染或回退到颜色渲染
+            if (this.textureManager && this.textureManager.isLoaded) {
+                // 绘制地形纹理
+                if (!this.textureManager.drawTextureInHex(ctx, tile.terrain, pixel.x, pixel.y, this.hexSize)) {
+                    // 如果纹理不存在，回退到颜色渲染
+                    const color = tile.getTerrainColor();
+                    this.drawHexagon(ctx, pixel.x, pixel.y, this.hexSize, color);
+                }
+                
+                // 绘制六边形边框
+                this.drawHexagon(ctx, pixel.x, pixel.y, this.hexSize, null, '#2c3e50');
+            } else {
+                // 传统颜色渲染
+                const color = tile.getTerrainColor();
+                this.drawHexagon(ctx, pixel.x, pixel.y, this.hexSize, color);
+            }
             
             // 如果地块未被当前玩家看见，添加迷雾效果
-            if (!tile.visible && !window.DEBUG_MODE) {
-                this.drawHexagon(ctx, pixel.x, pixel.y, this.hexSize, 'rgba(0, 0, 0, 0.5)');
+            if (!tile.visible && !isDebugMode) {
+                if (this.textureManager && this.textureManager.isLoaded) {
+                    this.textureManager.drawTextureInHex(ctx, 'fog', pixel.x, pixel.y, this.hexSize);
+                } else {
+                    this.drawHexagon(ctx, pixel.x, pixel.y, this.hexSize, 'rgba(0, 0, 0, 0.5)');
+                }
             }
             
             // 绘制河流标记
             if (tile.hasRiver) {
-                ctx.fillStyle = '#3498db';
-                ctx.beginPath();
-                ctx.arc(pixel.x - 10, pixel.y + 10, 3, 0, Math.PI * 2);
-                ctx.fill();
+                if (this.textureManager && this.textureManager.isLoaded) {
+                    // 使用河流纹理
+                    ctx.save();
+                    ctx.translate(pixel.x, pixel.y);
+                    ctx.rotate(Math.random() * Math.PI * 2); // 随机旋转
+                    const riverTexture = this.textureManager.getTexture('river');
+                    if (riverTexture) {
+                        ctx.drawImage(riverTexture.image, -riverTexture.width/2, -riverTexture.height/2);
+                    }
+                    ctx.restore();
+                } else {
+                    ctx.fillStyle = '#3498db';
+                    ctx.beginPath();
+                    ctx.arc(pixel.x - 10, pixel.y + 10, 3, 0, Math.PI * 2);
+                    ctx.fill();
+                }
             }
             
             // 绘制资源
-            if (tile.resource && (tile.visible || window.DEBUG_MODE)) {
-                ctx.fillStyle = tile.resource.color;
-                ctx.beginPath();
-                ctx.arc(pixel.x, pixel.y, 8, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // 绘制资源边框
-                ctx.strokeStyle = '#2c3e50';
-                ctx.lineWidth = 2;
-                ctx.stroke();
+            if (tile.resource && (tile.visible || isDebugMode)) {
+                if (this.textureManager && this.textureManager.isLoaded && tile.resource.emoji) {
+                    // 使用emoji渲染资源
+                    ctx.fillStyle = tile.resource.color;
+                    ctx.beginPath();
+                    ctx.arc(pixel.x + 12, pixel.y - 12, 10, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#2c3e50';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                    
+                    // 绘制emoji
+                    ctx.fillStyle = '#2c3e50';
+                    ctx.font = '16px Arial';
+                    ctx.textAlign = 'center';
+                    ctx.textBaseline = 'middle';
+                    ctx.fillText(tile.resource.emoji, pixel.x + 12, pixel.y - 12);
+                } else {
+                    // 传统资源渲染
+                    ctx.fillStyle = tile.resource.color;
+                    ctx.beginPath();
+                    ctx.arc(pixel.x, pixel.y, 8, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    ctx.strokeStyle = '#2c3e50';
+                    ctx.lineWidth = 2;
+                    ctx.stroke();
+                }
             }
 
             // 绘制改良设施
-            if (tile.improvement && (tile.visible || window.DEBUG_MODE)) {
+            if (tile.improvement && (tile.visible || isDebugMode)) {
                 tile.improvement.render(ctx, pixel.x, pixel.y);
             }
 
             // 绘制单位
-            if (tile.unit && (tile.visible || window.DEBUG_MODE)) {
+            if (tile.unit && (tile.visible || isDebugMode)) {
                 tile.unit.render(ctx, pixel.x, pixel.y);
             }
 
             // 绘制城市
-            if (tile.city && (tile.visible || window.DEBUG_MODE)) {
+            if (tile.city && (tile.visible || isDebugMode)) {
                 tile.city.render(ctx, pixel.x, pixel.y);
             }
 
             // 绘制坐标（调试用）
-            if (window.DEBUG_MODE) {
+            if (isDebugMode) {
                 ctx.fillStyle = '#fff';
                 ctx.font = '10px Arial';
                 ctx.textAlign = 'center';
@@ -174,12 +239,21 @@ class HexagonMap {
                 // 显示产出信息
                 ctx.font = '8px Arial';
                 ctx.fillText(`F:${tile.yields.food} P:${tile.yields.production} G:${tile.yields.gold}`, pixel.x, pixel.y + 15);
+                
+                // 显示地形类型
+                ctx.font = '8px Arial';
+                ctx.fillText(tile.terrain, pixel.x, pixel.y + 25);
             }
         });
 
         // 渲染河流
         if (this.riverSystem) {
             this.riverSystem.render(ctx, 0, 0);
+        }
+
+        // 在调试模式下显示渲染统计
+        if (window.location.hash === '#debug') {
+            console.log(`渲染了 ${renderedCount} / ${this.tiles.length} 个地块`);
         }
 
         ctx.restore();
@@ -204,8 +278,10 @@ class HexTile {
         this.resource = terrainGenerator ? terrainGenerator.generateResource(this.terrain, q, r) : this.generateResource();
         this.unit = null;
         this.city = null;
-        this.explored = false;
-        this.visible = false;
+        // 在调试模式下默认探索所有地块
+        const isDebugMode = window.location.hash === '#debug';
+        this.explored = isDebugMode;
+        this.visible = isDebugMode;
         this.hasRiver = false;
         this.improvement = null;
         this.feature = null;
@@ -259,7 +335,10 @@ class HexTile {
             forest: '#2d5016',
             hills: '#8b4513',
             mountains: '#7f8c8d',
-            water: '#3498db'
+            water: '#3498db',
+            desert: '#f4d03f',
+            tundra: '#85929e',
+            snow: '#ffffff'
         };
         return colors[this.terrain] || '#27ae60';
     }
@@ -272,7 +351,10 @@ class HexTile {
             forest: { food: 1, production: 1, gold: 0 },
             hills: { food: 0, production: 2, gold: 0 },
             mountains: { food: 0, production: 0, gold: 1 },
-            water: { food: 1, production: 0, gold: 2 }
+            water: { food: 1, production: 0, gold: 2 },
+            desert: { food: 0, production: 0, gold: 1 },
+            tundra: { food: 1, production: 0, gold: 0 },
+            snow: { food: 0, production: 0, gold: 0 }
         };
 
         let yields = { ...baseYields[this.terrain] };

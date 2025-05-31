@@ -31,7 +31,7 @@ class Game {
     }
 
     // 初始化游戏
-    initializeGame() {
+    async initializeGame() {
         // 创建玩家
         this.players = [
             { id: 0, name: '玩家', isHuman: true, color: '#e74c3c' },
@@ -39,15 +39,29 @@ class Game {
             { id: 2, name: 'AI文明2', isHuman: false, color: '#2ecc71' }
         ];
 
-        // 创建地图
-        this.map = new HexagonMap(15, 10, 25);
-        
         // 设置画布
         this.canvas = document.getElementById('game-canvas');
         this.ctx = this.canvas.getContext('2d');
         
         // 调整画布大小
         this.resizeCanvas();
+        
+        // 显示加载界面
+        this.showLoadingScreen();
+        
+        // 初始化纹理管理器
+        this.textureManager = new TextureManager();
+        const texturesLoaded = await this.textureManager.initialize();
+        
+        if (texturesLoaded) {
+            this.addMessage('地形纹理加载完成！');
+        } else {
+            this.addMessage('纹理加载失败，使用基础渲染模式。');
+        }
+
+        // 创建更大的地图
+        this.map = new HexagonMap(25, 20, 25);
+        this.map.setTextureManager(this.textureManager);
         
         // 设置相机位置到地图中心
         this.cameraX = this.canvas.width / 2;
@@ -59,13 +73,45 @@ class Game {
         // 绑定事件
         this.bindEvents();
         
+        // 隐藏加载界面
+        this.hideLoadingScreen();
+        
         // 开始游戏循环
         this.gameLoop();
         
         // 初始化UI
         this.updateUI();
         
+        // 在调试模式下探索所有地块
+        if (window.location.hash === '#debug') {
+            this.map.tiles.forEach(tile => {
+                tile.explored = true;
+                tile.visible = true;
+            });
+            this.addMessage(`调试模式：地图已全部探索 (${this.map.tiles.length} 个地块)`);
+            
+            // 添加全局调试函数
+            window.debugMap = () => {
+                console.log('地图信息:');
+                console.log('- 地块总数:', this.map.tiles.length);
+                console.log('- 地图尺寸:', this.map.width, 'x', this.map.height);
+                console.log('- 相机位置:', this.cameraX, this.cameraY);
+                console.log('- 缩放级别:', this.zoom);
+                console.log('- 六边形大小:', this.map.hexSize);
+                
+                const terrainCounts = {};
+                this.map.tiles.forEach(tile => {
+                    terrainCounts[tile.terrain] = (terrainCounts[tile.terrain] || 0) + 1;
+                });
+                console.log('- 地形分布:', terrainCounts);
+            };
+            
+            // 自动调用调试函数
+            window.debugMap();
+        }
+        
         this.addMessage('游戏开始！建立你的第一个城市吧。');
+        this.addMessage('使用WASD或方向键移动相机，鼠标滚轮缩放。');
     }
 
     // 调整画布大小
@@ -73,6 +119,67 @@ class Game {
         const container = this.canvas.parentElement;
         this.canvas.width = container.clientWidth;
         this.canvas.height = container.clientHeight;
+    }
+
+    // 显示加载界面
+    showLoadingScreen() {
+        const loadingDiv = document.createElement('div');
+        loadingDiv.id = 'loading-screen';
+        loadingDiv.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(44, 62, 80, 0.95);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+            color: #ecf0f1;
+        `;
+        
+        loadingDiv.innerHTML = `
+            <div style="text-align: center;">
+                <h2 style="margin-bottom: 20px;">正在生成世界...</h2>
+                <div style="width: 300px; height: 20px; background: #34495e; border-radius: 10px; overflow: hidden;">
+                    <div id="loading-progress" style="width: 0%; height: 100%; background: linear-gradient(90deg, #3498db, #2ecc71); transition: width 0.3s;"></div>
+                </div>
+                <p id="loading-text" style="margin-top: 10px;">初始化地形纹理...</p>
+            </div>
+        `;
+        
+        document.body.appendChild(loadingDiv);
+        
+        // 监听纹理加载进度
+        const progressBar = document.getElementById('loading-progress');
+        const loadingText = document.getElementById('loading-text');
+        
+        const updateProgress = () => {
+            if (this.textureManager) {
+                const progress = this.textureManager.getLoadProgress();
+                progressBar.style.width = (progress.progress * 100) + '%';
+                loadingText.textContent = `加载纹理 ${progress.loaded}/${progress.total}...`;
+                
+                if (!progress.isComplete) {
+                    setTimeout(updateProgress, 100);
+                }
+            }
+        };
+        
+        setTimeout(updateProgress, 100);
+    }
+
+    // 隐藏加载界面
+    hideLoadingScreen() {
+        const loadingScreen = document.getElementById('loading-screen');
+        if (loadingScreen) {
+            loadingScreen.style.opacity = '0';
+            setTimeout(() => {
+                loadingScreen.remove();
+            }, 500);
+        }
     }
 
     // 创建初始单位
@@ -116,6 +223,7 @@ class Game {
         
         // UI事件
         document.getElementById('next-turn-btn').addEventListener('click', () => this.nextTurn());
+        document.getElementById('regenerate-map-btn').addEventListener('click', () => this.regenerateMap());
         
         // 科技树事件
         document.querySelectorAll('.tech-item').forEach(item => {
@@ -579,6 +687,56 @@ class Game {
             water: '水域'
         };
         return names[terrain] || terrain;
+    }
+
+    // 重新生成地图
+    async regenerateMap() {
+        // 直接重新生成地图，不需要确认对话框
+        this.addMessage('正在生成新世界...');
+        
+        // 显示加载界面
+        this.showLoadingScreen();
+        
+        // 清除现有数据
+        this.units = [];
+        this.cities = [];
+        this.turn = 1;
+        this.currentPlayer = 0;
+        this.selectedUnit = null;
+        this.selectedCity = null;
+        this.resources = {
+            science: 0,
+            culture: 0,
+            gold: 100
+        };
+        
+        // 重新生成地图
+        this.map = new HexagonMap(25, 20, 25);
+        this.map.setTextureManager(this.textureManager);
+        
+        // 重新创建初始单位
+        this.createStartingUnits();
+        
+        // 重置相机位置
+        this.cameraX = this.canvas.width / 2;
+        this.cameraY = this.canvas.height / 2;
+        this.zoom = 1;
+        
+        // 在调试模式下探索所有地块
+        if (window.location.hash === '#debug') {
+            this.map.tiles.forEach(tile => {
+                tile.explored = true;
+                tile.visible = true;
+            });
+        }
+        
+        // 隐藏加载界面
+        this.hideLoadingScreen();
+        
+        // 更新UI
+        this.updateUI();
+        
+        this.addMessage('新世界已生成！开始你的新征程吧。');
     }
 
     // 添加游戏消息
